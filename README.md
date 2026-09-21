@@ -31,7 +31,7 @@ si un mécanisme se produit ou non, à budget identique entre les bras comparés
 | Exp. | Thèse | Prédiction | Ce qui la réfuterait | État |
 |---|---|---|---|---|
 | **A1** | T1 | `\|L(Z) − L(ZQ)\|` est à la précision machine pour la perte de Gram et InfoNCE, macroscopique pour une tête à prototypes, et revient à la précision machine si on tourne aussi les prototypes | un résidu qui ne décroît pas en float64 côté relationnel, ou un résidu à la précision machine côté prototypes non tournés | **confirmée** (A-001) |
-| **A2** | T2 | avec la perte de Gram seule, la perte tend vers 0 pendant que le rang effectif des embeddings s'effondre ; le terme variance/covariance sur `z` non normalisé l'empêche | pas d'effondrement sans ce terme, ou effondrement avec | **en partie infirmée** (A-001 à A-005) |
+| **A2** | T2 | avec la perte de Gram seule, la perte tend vers 0 pendant que le rang effectif des embeddings s'effondre ; le terme variance/covariance sur `z` non normalisé l'empêche | pas d'effondrement sans ce terme, ou effondrement avec | **en partie infirmée** (A-001 à A-005) ; suite pré-enregistrée, pas lancée (A-006) |
 | **B** | T1 | à batch contrôlé, la performance varie davantage à travers un balayage d'hyperparamètres côté prototypes que côté relationnel, et l'écart se creuse en queue longue | dispersion égale ou inverse, ou couplage au batch du même ordre que l'effet | pas lancée |
 | **C1** | T3 | des têtes entraînables sous un pire cas (max ou LSE) convergent les unes vers les autres, des têtes gelées non | pas de convergence des têtes entraînables | lancée, pas encore journalisée |
 | **C2-C3** | T3 | le pire cas adouci sur un panel de têtes gelées améliore la pire tâche aval, à moyenne égale ou un peu inférieure | pire tâche inchangée ou dégradée | pas lancées |
@@ -97,7 +97,10 @@ observations, pas des tests.
    est la meilleure sur toutes les mesures : 44,5 % de kNN contre 35,7 % sans le terme.
 2. Le signe de l'effet dépend de la sonde. Ajouter le terme sur `z` non normalisé fait perdre
    1,9 point de kNN et gagner 4,1 points de sonde linéaire, sur les mêmes features et les mêmes
-   graines, sans chevauchement entre graines.
+   graines, sans chevauchement entre graines. Réserve : la sonde linéaire standardise les
+   features, le kNN ne fait que normaliser leur longueur. Marks et al. (arXiv 2407.12210)
+   rapportent que les deux sondes s'accordent une fois les features standardisées. Le run
+   A-006 teste si c'est l'explication.
 3. Le rang ne donne pas la même lecture selon l'endroit où il est mesuré. Sur les trois bras
    « sphere », le kNN descend (44,5, puis 41,1, puis 39,3) pendant que le rang du backbone monte
    (446, puis 448, puis 454). Entre les deux bras extrêmes, le rang non centré des embeddings
@@ -111,6 +114,11 @@ espaces différents ; l'entrée A-002 la retire. L'entrée A-005 reprend la ques
 mesure : passer de 512 à 10 000 échantillons monte tous les rangs d'environ 23 % sans changer
 les écarts entre bras de plus d'un point, alors que mesurer sur des vues augmentées plutôt que
 sur des images propres divise ces écarts par deux.
+
+**Suite pré-enregistrée, pas encore lancée (A-006).** Dans les trois bras « sphere », gamma et la
+quantité de pression de variance reçue sont un seul et même bouton. Cinq bras à gamma fixe font
+varier la pression seule, par le poids du terme ou par la fraction de pas où il s'applique. La
+prédiction, ses seuils et ce qui la réfuterait sont dans `PREREG_A2V3` et dans l'entrée A-006.
 
 ### E0 : portée de corrélation du résidu
 

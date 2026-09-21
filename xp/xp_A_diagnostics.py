@@ -195,6 +195,7 @@ from lib.harness import (  # noqa: E402
     uniformity_alignment,
     vicreg_reg,
 )
+from lib.harness import _extract_features, _l2, _rng_island  # noqa: E402  (z-scored kNN, A2V3)
 
 DEFAULT_OUTDIR = os.path.join(_REPO_ROOT, "results", "A")
 DEFAULT_DATA_ROOT = os.path.join(_REPO_ROOT, "data")
@@ -739,6 +740,32 @@ A2_CORE_ARMS = ["gram", "gram_vicreg", "gram_vicreg_sphere"]
 A2_V2_ARMS = ["gram", "gram_vicreg", "gram_vicreg_sg",
               "gram_vicreg_sphere", "gram_vicreg_sphere_gamma"]
 
+# --- A2V3 arms (PREREG_A2V3, registered 2026-09-21) -------------------------
+# All five run the sphere regulariser with gamma = 1, a hinge that can never be
+# satisfied (the std ceiling on the sphere is 1/sqrt(d)), and differ ONLY in how
+# much of the VARIANCE term reaches the loss.  The covariance term is untouched
+# in every arm, exactly as in the three legacy sphere arms.
+A2_ARMS.update({
+    "gram_vicreg_sphere_dose51": ("sphere", 1.0),
+    "gram_vicreg_sphere_dose11": ("sphere", 1.0),
+    "gram_vicreg_sphere_interm51": ("sphere", 1.0),
+    "gram_vicreg_sphere_interm11": ("sphere", 1.0),
+    "gram_vicreg_sphere_early250": ("sphere", 1.0),
+})
+A2_VAR_SCHEDULE = {
+    # arm -> (kind, value)
+    #   dose   : variance weight multiplied by `value` at every step
+    #   interm : variance term applied on a seeded Bernoulli(value) subset of the
+    #            steps and dropped on the others
+    #   early  : variance term applied for the first `value` steps, then dropped
+    "gram_vicreg_sphere_dose51": ("dose", 0.51),
+    "gram_vicreg_sphere_dose11": ("dose", 0.11),
+    "gram_vicreg_sphere_interm51": ("interm", 0.51),
+    "gram_vicreg_sphere_interm11": ("interm", 0.11),
+    "gram_vicreg_sphere_early250": ("early", 250),
+}
+A2_V3_ARMS = ["gram", "gram_vicreg", "gram_vicreg_sphere"] + sorted(A2_VAR_SCHEDULE)
+
 # ---------------------------------------------------------------------------
 # Five-arm pre-registration.  Registered 2026-09-05, BEFORE any run of the
 # `gram_vicreg_sg` and `gram_vicreg_sphere_gamma` arms.  Thresholds are
@@ -806,6 +833,74 @@ PREREG_A2V2 = {
                    "(extra_projector_forwards_per_step). Projector BN running "
                    "stats are updated twice per step in this arm; they are "
                    "only consumed in eval() diagnostics.",
+}
+
+
+# ---------------------------------------------------------------------------
+# A2V3 pre-registration.  Registered 2026-09-21, BEFORE any run of the five
+# arms of A2_VAR_SCHEDULE and before any z-scored kNN was ever computed.
+# Anchors are the A-003 / A-004 measurements (JOURNAL).  The reference arm
+# gram_vicreg_sphere is RE-RUN inside the same invocation: two identical runs
+# differ by about 1 pp of kNN (A-004, point 5), so no threshold below compares
+# a new arm with a number from an older run.
+# ---------------------------------------------------------------------------
+PREREG_A2V3 = {
+    "Q3_pressure_at_fixed_gamma": {
+        "context": "in A-004 three sphere arms differ by the variance target "
+                   "gamma alone; the hinge ends active on 100%, 51% and 11% of "
+                   "the coordinates and kNN is 44.5 / 41.1 / 39.3. A lower "
+                   "gamma is reached sooner, so 'gamma' and 'how much variance "
+                   "pressure the run received' are one knob. These arms move "
+                   "the pressure at FIXED gamma = 1.",
+        "statement": "the transfer drop across the legacy sphere arms is carried "
+                     "by the amount of variance pressure, not by the value of "
+                     "gamma: at gamma = 1, cutting the variance term to 11% "
+                     "(by weight, or by applying it on 11% of the steps) "
+                     "reproduces the kNN drop, and 51% falls in between",
+        "confirm": "mean over the two 11% arms of [knn(sphere) - knn(arm)] >= "
+                   "3.0 pp AND knn(sphere) > knn(51%) > knn(11%) inside both "
+                   "families (dose, interm)",
+        "falsify": "both 11% arms end within 1.5 pp of knn(sphere): at fixed "
+                   "gamma the pressure does not reproduce the drop, so gamma "
+                   "itself was the lever in A-004",
+        "anchors": "A-004: knn(sphere) - knn(sphere_gamma_half) = 5.2 pp; two "
+                   "identical runs differ by ~1 pp; 3.0 pp is ~60% of the "
+                   "legacy drop and 1.5 pp is within run-to-run noise plus one "
+                   "se of a 3-seed difference",
+        "exploratory": "dose vs interm at equal p (same integrated pressure, "
+                       "different persistence), the early250 arm, and the "
+                       "Spearman correlation across sphere-type arms between "
+                       "kNN and (i) var_pressure_mean, a label-free quantity "
+                       "read on the training trajectory, (ii) the backbone "
+                       "rank. Reported, never gated.",
+        "not_decided": "a dose-response along the knob that sets the pressure is "
+                       "not a label-free PREDICTOR: that needs arms where the "
+                       "pressure moves indirectly (lr, batch size, covariance "
+                       "weight). One loss family, CIFAR-10, 6000 steps.",
+        "registered": "2026-09-21, before the first run of these arms",
+    },
+    "Q4_probe_normalisation": {
+        "context": "A-003: adding the variance/covariance term on unnormalised z "
+                   "costs 1.94 pp of kNN and gains 4.11 pp of linear probe on "
+                   "the same features. The linear probe standardises features "
+                   "with train statistics; the kNN only L2-normalises them. "
+                   "Marks et al. (arXiv 2407.12210) report that linear and kNN "
+                   "probing agree (r = 0.99) once features are normalised, with "
+                   "a z-score before the kNN.",
+        "statement": "the sign disagreement is a normalisation artefact: with "
+                     "features z-scored per dimension on train statistics before "
+                     "the cosine kNN, knn(gram_vicreg) - knn(gram) becomes "
+                     "positive, in agreement with the linear probe",
+        "confirm": "z-scored kNN difference > +0.5 pp",
+        "falsify": "z-scored kNN difference < -1.0 pp (the disagreement survives "
+                   "normalisation)",
+        "premise": "the raw kNN difference must reproduce below -1.0 pp in the "
+                   "same run; otherwise the verdict is 'non concluante'",
+        "registered": "2026-09-21, before any z-scored kNN was computed",
+    },
+    "artefacts": "every run now writes <name>.weights.pt (model state, fp32) so "
+                 "that label-free metrics can be recomputed without retraining; "
+                 "A-003 and results/A were lost for lack of it",
 }
 
 
@@ -980,6 +1075,75 @@ def _clean_rank_block(model: EncoderProjector, eval_tr, eval_te,
     }
 
 
+@torch.no_grad()
+def _clean_embedding_ranks(model: EncoderProjector, eval_te, device: torch.device,
+                           bs: int = 256) -> Dict[str, float]:
+    """RankMe-style effective rank of the PROJECTOR output z on the clean test
+    split, uncentred (the formula as written in RankMe) and centred, at full N
+    and on the first 512 rows (nested, so the two differ by N alone)."""
+    was_training = model.training
+    model.eval()
+    n = len(eval_te)
+    Z = []
+    for a in range(0, n, bs):
+        xs = []
+        for i in range(a, min(a + bs, n)):
+            item = eval_te[i]
+            xs.append(item[0] if isinstance(item, (tuple, list)) else item["x"])
+        _h, z = model(torch.stack(xs).to(device))
+        Z.append(z.float().cpu())
+    if was_training:
+        model.train()
+    Zt = torch.cat(Z)
+
+    def cen(M: torch.Tensor) -> torch.Tensor:
+        return M - M.mean(dim=0, keepdim=True)
+
+    return {
+        "eff_rank_z_clean_uncentred": effective_rank(Zt),
+        "eff_rank_z_clean_centred": effective_rank(cen(Zt)),
+        "eff_rank_z_clean_u512": effective_rank(Zt[:512]),
+        "eff_rank_z_clean_c512": effective_rank(cen(Zt[:512])),
+        "n_clean_eval_z": float(Zt.shape[0]),
+    }
+
+
+def knn_probe_zscore(encoder, train_ds, test_ds, k: int = 20, device=None) -> float:
+    """harness.knn_probe with ONE change: features are z-scored per dimension
+    with TRAIN statistics before the L2 normalisation.  Same k, same T = 0.07,
+    same cosine vote.  This is the normalisation the linear probe already
+    applies, so the two probes finally read the same features (PREREG_A2V3 Q4)."""
+    with _rng_island(seed=0):
+        return _knn_probe_zscore_impl(encoder, train_ds, test_ds, k, device)
+
+
+@torch.no_grad()
+def _knn_probe_zscore_impl(encoder, train_ds, test_ds, k, device) -> float:
+    device = device or get_device()
+    Xtr, ytr = _extract_features(encoder, train_ds, device)
+    Xte, yte = _extract_features(encoder, test_ds, device)
+    num_classes = int(max(ytr.max().item(), yte.max().item())) + 1
+    mu = Xtr.mean(0, keepdim=True)
+    sd = Xtr.std(0, keepdim=True).clamp_min(1e-6)
+    Xtr = _l2((Xtr - mu) / sd).to(device)
+    Xte = _l2((Xte - mu) / sd).to(device)
+    ytr = ytr.to(device)
+    yte = yte.to(device)
+    k = int(min(k, Xtr.shape[0]))
+    T = 0.07
+    correct = 0
+    chunk = 1024
+    for i in range(0, Xte.shape[0], chunk):
+        sim = Xte[i:i + chunk] @ Xtr.t()
+        sim_k, idx_k = sim.topk(k, dim=1)
+        w = (sim_k / T).exp()
+        lab_k = ytr[idx_k]
+        scores = torch.zeros(sim.shape[0], num_classes, device=device)
+        scores.scatter_add_(1, lab_k, w)
+        correct += int((scores.argmax(1) == yte[i:i + chunk]).sum())
+    return float(correct) / float(Xte.shape[0])
+
+
 def train_a2_arm(arm: str, seed: int, args, device: torch.device) -> dict:
     """Train one (arm, seed) and return its final diagnostics.
 
@@ -1007,6 +1171,28 @@ def train_a2_arm(arm: str, seed: int, args, device: torch.device) -> dict:
     else:
         gamma = 1.0
 
+    # A2V3: how much of the VARIANCE term reaches the loss at each step.  The
+    # mask of the intermittent arms depends on the seed alone, never on the
+    # global RNG, so it is identical across resumes.
+    sched = A2_VAR_SCHEDULE.get(arm)
+    early_cut = 250 if args.steps >= 1000 else max(1, args.steps // 4)
+    interm_mask = None
+    if sched is not None and sched[0] == "interm":
+        interm_mask = (np.random.RandomState(1_000_003 * (seed + 1) + 17)
+                       .rand(int(args.steps)) < float(sched[1]))
+
+    def var_scale_at(step: int) -> float:
+        if sched is None:
+            return 1.0
+        kind, val = sched
+        if kind == "dose":
+            return float(val)
+        if kind == "interm":
+            return 1.0 if bool(interm_mask[step]) else 0.0
+        if kind == "early":
+            return 1.0 if step < early_cut else 0.0
+        raise ValueError(f"unknown variance schedule {kind!r}")
+
     # The config is built BEFORE the resume check, because the resume check has
     # to compare it against the stored one.  Skipping a finished run without
     # that comparison silently returns a summary produced with different
@@ -1025,6 +1211,10 @@ def train_a2_arm(arm: str, seed: int, args, device: torch.device) -> dict:
         "eval_subset": args.eval_subset, "probe": bool(args.probe),
         "amp": bool(args.amp and device.type == "cuda"),
     }
+    # Only added for scheduled arms, so legacy summaries keep matching on resume.
+    if sched is not None:
+        config["var_schedule"] = (f"early:{early_cut}" if sched[0] == "early"
+                                  else f"{sched[0]}:{sched[1]}")
 
     if args.resume and os.path.exists(summary_path):
         with open(summary_path, "r", encoding="utf-8") as f:
@@ -1080,11 +1270,14 @@ def train_a2_arm(arm: str, seed: int, args, device: torch.device) -> dict:
               higher_is_better=False)
 
     start_step = 0
+    pressure_sum, pressure_n = 0.0, 0
     ck = run.load_ckpt() if args.resume else None
     if ck is not None:
         model.load_state_dict(ck["model"])
         opt.load_state_dict(ck["opt"])
         start_step = int(ck["step"])
+        pressure_sum = float(ck.get("pressure_sum", 0.0))
+        pressure_n = int(ck.get("pressure_n", 0))
         print(f"[A2] {name}: resumed at step {start_step}")
 
     use_amp = bool(args.amp and device.type == "cuda")
@@ -1170,11 +1363,16 @@ def train_a2_arm(arm: str, seed: int, args, device: torch.device) -> dict:
         elif reg_kind == "sphere":
             n1 = z1 / z1.norm(dim=1, keepdim=True).clamp_min(1e-8)
             n2 = z2 / z2.norm(dim=1, keepdim=True).clamp_min(1e-8)
-            r1, s1 = vicreg_on_unit_sphere(n1, args.var_w, args.cov_w, gamma)
-            r2, s2 = vicreg_on_unit_sphere(n2, args.var_w, args.cov_w, gamma)
+            vs = var_scale_at(step)
+            r1, s1 = vicreg_on_unit_sphere(n1, args.var_w * vs, args.cov_w, gamma)
+            r2, s2 = vicreg_on_unit_sphere(n2, args.var_w * vs, args.cov_w, gamma)
             loss = loss + 0.5 * (r1 + r2)
             var_raw, cov_raw = 0.5 * (s1["var"] + s2["var"]), 0.5 * (s1["cov"] + s2["cov"])
             hinge_frac = 0.5 * (s1["hinge_active_frac"] + s2["hinge_active_frac"])
+            # label-free trajectory statistic: share of the full variance
+            # pressure this step actually received (active coordinates x scale)
+            pressure_sum += float(hinge_frac) * float(vs)
+            pressure_n += 1
 
         if not torch.isfinite(loss):
             run.log(step=step + 1, seed=seed, arm=arm, train_loss=float(loss),
@@ -1201,7 +1399,8 @@ def train_a2_arm(arm: str, seed: int, args, device: torch.device) -> dict:
                     train_agree=float(agree.detach()), train_var_raw=var_raw,
                     train_cov_raw=cov_raw, train_hinge_active=hinge_frac)
         if (step + 1) % args.ckpt_every == 0 or (step + 1) == args.steps:
-            run.save_ckpt(step + 1, model=model.state_dict(), opt=opt.state_dict())
+            run.save_ckpt(step + 1, model=model.state_dict(), opt=opt.state_dict(),
+                          pressure_sum=pressure_sum, pressure_n=pressure_n)
 
     # ---- final measurement ----------------------------------------------
     final = diagnose(model, diag_v1, diag_v2, device, gamma)
@@ -1227,6 +1426,18 @@ def train_a2_arm(arm: str, seed: int, args, device: torch.device) -> dict:
             probe_linear = float(pr.get("acc", float("nan")))
             print(f"[A2] {name}: linear probe = {probe_linear:.4f}")
 
+    # A2V3 instrumentation: z-scored kNN (Q4), RankMe-style ranks of z on clean
+    # images, and the model weights, so nothing has to be retrained to re-measure.
+    knn_z = float("nan")
+    if args.probe:
+        knn_z = knn_probe_zscore(model.backbone, eval_tr, eval_te,
+                                 k=min(20, len(eval_tr) - 1), device=device)
+        print(f"[A2] {name}: kNN on z-scored features = {knn_z:.4f}")
+    z_ranks = _clean_embedding_ranks(model, eval_te, device)
+    weights_path = os.path.join(args.outdir, f"{name}.weights.pt")
+    torch.save({"model": model.state_dict(), "config": config}, weights_path + ".tmp")
+    os.replace(weights_path + ".tmp", weights_path)
+
     # step-0 baseline, read back from our own CSV so it survives a resume
     baseline = _read_first_row_value(run.csv_path, "eff_rank_z")
 
@@ -1235,6 +1446,12 @@ def train_a2_arm(arm: str, seed: int, args, device: torch.device) -> dict:
         "arm": arm, "seed": seed, "steps": args.steps, "batch_size": args.bs,
         "knn_acc": knn, "knn_chance": chance,
         "probe_linear_acc": probe_linear,
+        "knn_acc_zscore": knn_z,
+        **z_ranks,
+        "var_schedule": config.get("var_schedule", "full"),
+        "var_pressure_mean": (pressure_sum / pressure_n) if pressure_n else float("nan"),
+        "var_pressure_steps": int(pressure_n),
+        "weights_file": os.path.basename(weights_path),
         **clean_final,
         **{f"{k}_at_init": v for k, v in clean_init.items()},
         "extra_projector_forwards_per_step": 2 if reg_kind == "unnormalised_sg" else 0,
@@ -1600,6 +1817,98 @@ def verdicts_a2(res: dict, args) -> dict:
             v["verdict"] = VERDICT_INCONCLUSIVE
         v["evidence"] = ev
         out["Q2_saturated_vs_satisfiable"] = v
+
+    # ---- Q3 / Q4 : PREREG_A2V3, registered 2026-09-21 ----------------------
+    REF = "gram_vicreg_sphere"
+    D11, D51 = "gram_vicreg_sphere_dose11", "gram_vicreg_sphere_dose51"
+    I11, I51 = "gram_vicreg_sphere_interm11", "gram_vicreg_sphere_interm51"
+    if all(a in per_arm for a in (REF, D11, I11)):
+        v = {"prediction": PREREG_A2V3["Q3_pressure_at_fixed_gamma"],
+             "statement": PREREG_A2V3["Q3_pressure_at_fixed_gamma"]["statement"]}
+        k = {a: agg(a, "knn_acc")[0] for a in per_arm}
+        drop_d = (k[REF] - k[D11]) * 100.0
+        drop_i = (k[REF] - k[I11]) * 100.0
+        mean_drop = 0.5 * (drop_d + drop_i)
+        have51 = (D51 in per_arm and I51 in per_arm)
+        ordered = bool(have51 and k[REF] > k[D51] > k[D11] and k[REF] > k[I51] > k[I11])
+        sphere_like = [a for a in per_arm if a.startswith("gram_vicreg_sphere")]
+
+        def _spearman(xs: List[float], ys: List[float]) -> float:
+            pts = [(x, y) for x, y in zip(xs, ys) if x == x and y == y]
+            if len(pts) < 3:
+                return float("nan")
+            def _avg_ranks(vals: List[float]) -> np.ndarray:
+                a = np.asarray(vals, dtype=float)
+                order = np.argsort(a, kind="mergesort")
+                ranks = np.empty(len(a), dtype=float)
+                ranks[order] = np.arange(1, len(a) + 1, dtype=float)
+                for val in np.unique(a):          # ties share their mean rank
+                    m = (a == val)
+                    ranks[m] = ranks[m].mean()
+                return ranks
+
+            rx = _avg_ranks([p[0] for p in pts])
+            ry = _avg_ranks([p[1] for p in pts])
+            if rx.std() == 0 or ry.std() == 0:
+                return float("nan")
+            return float(np.corrcoef(rx, ry)[0, 1])
+
+        ks = [k[a] for a in sphere_like]
+        ev = {"knn": {a: k[a] for a in sphere_like},
+              "knn_std": {a: agg(a, "knn_acc")[1] for a in sphere_like},
+              "drop_dose11_pp": drop_d, "drop_interm11_pp": drop_i,
+              "mean_drop_11_pp": mean_drop, "ordered_within_families": ordered,
+              "exploratory": {
+                  "var_pressure_mean": {a: agg(a, "var_pressure_mean")[0] for a in sphere_like},
+                  "spearman_knn_vs_var_pressure": _spearman(
+                      [agg(a, "var_pressure_mean")[0] for a in sphere_like], ks),
+                  "spearman_knn_vs_backbone_rank": _spearman(
+                      [agg(a, "eff_rank_h_clean_centred")[0] for a in sphere_like], ks),
+                  "spearman_knn_vs_embedding_rank_uncentred": _spearman(
+                      [agg(a, "eff_rank_z_clean_uncentred")[0] for a in sphere_like], ks),
+                  "n_arms": len(sphere_like)},
+              "n_seeds": min(_n(a) for a in (REF, D11, I11))}
+        if ev["n_seeds"] < 3 or mean_drop != mean_drop:
+            v["verdict"] = VERDICT_INCONCLUSIVE
+            ev["reason"] = "fewer than 3 seeds, or missing kNN"
+        elif mean_drop >= 3.0 and ordered:
+            v["verdict"] = VERDICT_CONFIRMED
+        elif drop_d < 1.5 and drop_i < 1.5:
+            v["verdict"] = VERDICT_REFUTED
+        else:
+            v["verdict"] = VERDICT_INCONCLUSIVE
+        v["evidence"] = ev
+        out["Q3_pressure_at_fixed_gamma"] = v
+
+    if "gram" in per_arm and "gram_vicreg" in per_arm:
+        kz_g, _ = agg("gram", "knn_acc_zscore")
+        kz_v, _ = agg("gram_vicreg", "knn_acc_zscore")
+        if kz_g == kz_g and kz_v == kz_v:      # legacy summaries do not carry it
+            v = {"prediction": PREREG_A2V3["Q4_probe_normalisation"],
+                 "statement": PREREG_A2V3["Q4_probe_normalisation"]["statement"]}
+            d_raw = (agg("gram_vicreg", "knn_acc")[0] - agg("gram", "knn_acc")[0]) * 100.0
+            d_z = (kz_v - kz_g) * 100.0
+            d_lin = (agg("gram_vicreg", "probe_linear_acc")[0]
+                     - agg("gram", "probe_linear_acc")[0]) * 100.0
+            ev = {"delta_knn_raw_pp": d_raw, "delta_knn_zscore_pp": d_z,
+                  "delta_linear_pp": d_lin,
+                  "knn_zscore_gram": kz_g, "knn_zscore_gram_vicreg": kz_v,
+                  "n_seeds": min(_n("gram"), _n("gram_vicreg"))}
+            if ev["n_seeds"] < 3:
+                v["verdict"] = VERDICT_INCONCLUSIVE
+                ev["reason"] = "fewer than 3 seeds"
+            elif not d_raw < -1.0:
+                v["verdict"] = VERDICT_INCONCLUSIVE
+                ev["reason"] = ("premise not reproduced: the raw kNN difference is "
+                                "not below -1.0 pp in this run")
+            elif d_z > 0.5:
+                v["verdict"] = VERDICT_CONFIRMED
+            elif d_z < -1.0:
+                v["verdict"] = VERDICT_REFUTED
+            else:
+                v["verdict"] = VERDICT_INCONCLUSIVE
+            v["evidence"] = ev
+            out["Q4_probe_normalisation"] = v
 
     # ---- P2.1 : the pure relational objective collapses --------------------
     if "gram" in per_arm:

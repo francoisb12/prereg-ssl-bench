@@ -60,6 +60,89 @@ Envoyé à quelqu'un ?  : non / oui → à qui, quel fichier d'email, quelle dat
 
 <!-- Nouveaux runs à partir d'ici. Le plus récent en haut. -->
 
+### [A-006]  2026-09-21  :  A2 / pré-enregistrement A2V3, pression de variance à gamma fixe et kNN standardisé (run non lancé)
+
+```
+Commande exacte     : python xp/xp_A_diagnostics.py --exp a2 --clip 5.0 --steps 6000
+                      --arm gram --arm gram_vicreg --arm gram_vicreg_sphere
+                      --arm gram_vicreg_sphere_dose51 --arm gram_vicreg_sphere_dose11
+                      --arm gram_vicreg_sphere_interm51 --arm gram_vicreg_sphere_interm11
+                      --arm gram_vicreg_sphere_early250
+                      (lancé en trois groupes avec synchronisation entre chaque, puis une
+                      dernière invocation sur les huit bras, qui ne réentraîne rien et calcule
+                      les verdicts)
+Graines             : 3 (0, 1, 2)
+Budget              : 6 000 pas / bs 256 / 2 passes encodeur, identique pour les huit bras
+Wall-clock prévu    : environ 5 h, 24 runs de 13 min             GPU : A100 (Colab)
+Reprise             : à remplir après le run
+Commit ou date des scripts : xp_A_diagnostics.py du 2026-09-21 (PREREG_A2V3), smoke passé
+```
+
+**Pourquoi ce run.** Dans A-004, trois bras « sphere » ne diffèrent que par la cible de variance
+gamma. La charnière finit active sur 100 %, 51 % et 11 % des coordonnées, et le kNN fait 44,5,
+41,1 et 39,3. Une cible plus basse est atteinte plus tôt : « gamma » et « quantité de pression de
+variance reçue » sont un seul et même bouton. A-004 le notait comme une lecture, pas comme un
+test. Ce run fait varier la pression à gamma fixe.
+
+**Bras.** Tous à gamma = 1, contrainte jamais satisfiable sur la sphère. Seul le terme de
+variance est modulé, le terme de covariance reste entier comme dans les bras d'origine.
+- `dose51`, `dose11` : poids du terme de variance multiplié par 0,51 ou 0,11 à chaque pas.
+- `interm51`, `interm11` : terme appliqué sur 51 % ou 11 % des pas (tirage fixé par la graine),
+  absent sur les autres. Même pression intégrée que les bras « dose », persistance différente.
+- `early250` : terme actif les 250 premiers pas, puis coupé.
+- `gram_vicreg_sphere` est relancé dans le même run comme référence : deux runs identiques
+  diffèrent d'environ un point de kNN (A-004), donc aucun seuil ne compare un bras nouveau à un
+  chiffre d'un ancien run.
+
+**Q3, prédiction (écrite AVANT le run).** La baisse de transfert entre les bras d'origine est
+portée par la quantité de pression de variance, pas par la valeur de gamma : à gamma = 1,
+réduire le terme à 11 % reproduit la baisse de kNN, et 51 % tombe entre les deux.
+
+**Q3, ce qui la confirmerait :** moyenne sur les deux bras à 11 % de [kNN(sphere) − kNN(bras)]
+≥ 3,0 points, ET kNN(sphere) > kNN(51 %) > kNN(11 %) dans les deux familles.
+**Q3, ce qui la falsifierait :** les deux bras à 11 % finissent à moins de 1,5 point de
+kNN(sphere). À gamma fixe la pression ne reproduit pas la baisse : c'est gamma qui comptait.
+Ancres : la baisse d'origine est de 5,2 points ; 3,0 en vaut environ 60 % ; 1,5 couvre le bruit
+entre runs plus une erreur standard d'une différence à 3 graines.
+
+**Q4, prédiction (écrite AVANT le run).** Le désaccord de signe entre kNN et sonde linéaire de
+A-003 (−1,94 point de kNN, +4,11 de sonde linéaire, gram contre gram_vicreg) est un artefact de
+normalisation. La sonde linéaire standardise les features, le kNN ne fait que normaliser leur
+longueur. Marks et al. (arXiv 2407.12210) rapportent que les deux sondes s'accordent (r = 0,99)
+une fois les features normalisées, avec un z-score avant le kNN. Avec des features standardisées
+sur les statistiques du train avant le kNN cosinus, kNN(gram_vicreg) − kNN(gram) devient positif.
+
+**Q4, confirmée si** la différence de kNN standardisé dépasse +0,5 point. **Falsifiée si** elle
+reste sous −1,0 point : le désaccord survit à la normalisation. **Prémisse :** la différence de
+kNN brut doit se reproduire sous −1,0 point dans ce run, sinon « non concluante ».
+
+**Exploratoire, jamais gaté :** dose contre intermittent à pression égale ; le bras early250 ; la
+corrélation de Spearman, sur les bras de type sphere, entre le kNN et (i) `var_pressure_mean`,
+part de la pression de variance reçue, lue sur la trajectoire sans étiquettes, (ii) le rang du
+backbone, (iii) le rang non centré des embeddings sur images propres.
+
+**Nouveau dans l'instrument.** Chaque run écrit `<nom>.weights.pt` (poids du modèle). Les
+artefacts de A-003 et de `results/A` ont été perdus faute de cela. Chaque résumé porte aussi le
+kNN standardisé et le rang des embeddings sur le test propre, centré et non centré, à N = 512
+et N = 10 000.
+
+**Résultat brut :** [à remplir après le run]
+
+**Verdict :** [à remplir après le run]
+
+**Ce que ce run NE décide PAS (écrit AVANT) :**
+- Une courbe dose-réponse le long du bouton qui règle la pression n'est pas un prédicteur sans
+  étiquettes. Il faudrait des bras où la pression bouge indirectement (taux d'apprentissage,
+  taille de batch, poids de covariance). Si Q3 est confirmée, c'est l'étape suivante, pas une
+  conclusion.
+- Une famille de perte, CIFAR-10, 6 000 pas, modèles loin de la convergence.
+- Si Q4 est confirmée, l'observation « le signe dépend de la sonde » de A-003 est expliquée par
+  un fait connu, et doit être présentée comme telle partout où elle apparaît.
+
+**Envoyé à quelqu'un ?** non.
+
+---
+
 ### [A-005]  2026-09-18  :  A2 / ce que N, l'augmentation et le split font au rang, aucun GPU
 
 ```
