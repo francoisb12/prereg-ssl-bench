@@ -28,19 +28,19 @@ si un mécanisme se produit ou non, à budget identique entre les bras comparés
 
 ## État des expériences
 
-| Exp. | Thèse | Prédiction | Ce qui la réfuterait | Coût A100 | État |
-|---|---|---|---|---|---|
-| **A1** | T1 | `\|L(Z) − L(ZQ)\|` est à la précision machine pour la perte de Gram et InfoNCE, macroscopique pour une tête à prototypes, et revient à la précision machine si on tourne aussi les prototypes | un résidu qui ne décroît pas en float64 côté relationnel, ou un résidu à la précision machine côté prototypes non tournés | 20 s CPU | **confirmée** (A-001) |
-| **A2** | T2 | avec la perte de Gram seule, la perte tend vers 0 pendant que le rang effectif des embeddings s'effondre ; le terme variance/covariance sur `z` non normalisé l'empêche | pas d'effondrement sans ce terme, ou effondrement avec | 0,3 h, puis 3 h à 6 000 pas | **en partie infirmée** (A-001 à A-005) |
-| **B** | T1 | à batch contrôlé, la performance varie davantage à travers un balayage d'hyperparamètres côté prototypes que côté relationnel, et l'écart se creuse en queue longue | dispersion égale ou inverse, ou couplage au batch du même ordre que l'effet | 47 h | pas lancée |
-| **C1** | T3 | des têtes entraînables sous un pire cas (max ou LSE) convergent les unes vers les autres, des têtes gelées non | pas de convergence des têtes entraînables | 5 h | lancée, pas encore journalisée |
-| **C2-C3** | T3 | le pire cas adouci sur un panel de têtes gelées améliore la pire tâche aval, à moyenne égale ou un peu inférieure | pire tâche inchangée ou dégradée | 9,5 h | pas lancées |
-| **D1** | T5 | une politique d'augmentation entraînée à minimiser la perte SSL s'effondre vers l'identité ; sous budget adversarial, seul le budget déplace le résultat | la politique apprise déplace les résultats à budget gelé | 2 à 3 h | pas lancée |
-| **D2** | T6 | les courbes « augmentations prudentes » et « augmentations fortes » se croisent entre un domaine standard et un domaine où l'invariance supposée est fausse ; le fine-tuning récupère ce que la sonde linéaire ne récupère pas | pas de croisement, ou la sonde linéaire récupère tout | 2 à 4 h | pas lancée |
-| **E0** | T4 | la portée de corrélation du résidu d'un prédicteur masqué sépare les objets des textures mieux que le critère naïf « le résidu est structuré » | AUC de la portée à peu près égale à celle du critère naïf | 0,6 h par graine | **non mesurable à cette échelle** : trois régimes vides (E-001 à E-005) |
-| **E1** | T4 | à FLOPs égaux, un routeur fondé sur ce critère bat l'absence de routeur et bat le critère naïf | le naïf fait aussi bien | 7 à 11 h | bloquée par E0 |
-| **F1** | T7 | le fine-tuning gagne en pic par tâche, l'encodeur gelé gagne en pire cas et en variance | le gelé perd aussi en pire cas, ou ses poids bougent | 18 à 20 h | pas lancée |
-| **F2** | T8 | un latent sans perte propre ni décodeur transfère mieux ; un bras stop-gradient sépare « le décodeur déforme » de « le décodeur consomme du budget » | pas d'écart, ou écart entièrement expliqué par le bras stop-gradient | inclus dans F1 | pas lancée |
+| Exp. | Thèse | Prédiction | Ce qui la réfuterait | État |
+|---|---|---|---|---|
+| **A1** | T1 | `\|L(Z) − L(ZQ)\|` est à la précision machine pour la perte de Gram et InfoNCE, macroscopique pour une tête à prototypes, et revient à la précision machine si on tourne aussi les prototypes | un résidu qui ne décroît pas en float64 côté relationnel, ou un résidu à la précision machine côté prototypes non tournés | **confirmée** (A-001) |
+| **A2** | T2 | avec la perte de Gram seule, la perte tend vers 0 pendant que le rang effectif des embeddings s'effondre ; le terme variance/covariance sur `z` non normalisé l'empêche | pas d'effondrement sans ce terme, ou effondrement avec | **en partie infirmée** (A-001 à A-005) |
+| **B** | T1 | à batch contrôlé, la performance varie davantage à travers un balayage d'hyperparamètres côté prototypes que côté relationnel, et l'écart se creuse en queue longue | dispersion égale ou inverse, ou couplage au batch du même ordre que l'effet | pas lancée |
+| **C1** | T3 | des têtes entraînables sous un pire cas (max ou LSE) convergent les unes vers les autres, des têtes gelées non | pas de convergence des têtes entraînables | lancée, pas encore journalisée |
+| **C2-C3** | T3 | le pire cas adouci sur un panel de têtes gelées améliore la pire tâche aval, à moyenne égale ou un peu inférieure | pire tâche inchangée ou dégradée | pas lancées |
+| **D1** | T5 | une politique d'augmentation entraînée à minimiser la perte SSL s'effondre vers l'identité ; sous budget adversarial, seul le budget déplace le résultat | la politique apprise déplace les résultats à budget gelé | pas lancée |
+| **D2** | T6 | les courbes « augmentations prudentes » et « augmentations fortes » se croisent entre un domaine standard et un domaine où l'invariance supposée est fausse ; le fine-tuning récupère ce que la sonde linéaire ne récupère pas | pas de croisement, ou la sonde linéaire récupère tout | pas lancée |
+| **E0** | T4 | la portée de corrélation du résidu d'un prédicteur masqué sépare les objets des textures mieux que le critère naïf « le résidu est structuré » | AUC de la portée à peu près égale à celle du critère naïf | **non mesurable à cette échelle** : trois régimes vides (E-001 à E-005) |
+| **E1** | T4 | à FLOPs égaux, un routeur fondé sur ce critère bat l'absence de routeur et bat le critère naïf | le naïf fait aussi bien | bloquée par E0 |
+| **F1** | T7 | le fine-tuning gagne en pic par tâche, l'encodeur gelé gagne en pire cas et en variance | le gelé perd aussi en pire cas, ou ses poids bougent | pas lancée |
+| **F2** | T8 | un latent sans perte propre ni décodeur transfère mieux ; un bras stop-gradient sépare « le décodeur déforme » de « le décodeur consomme du budget » | pas d'écart, ou écart entièrement expliqué par le bras stop-gradient | pas lancée |
 
 ## Résultats
 
@@ -166,7 +166,7 @@ python xp/xp_A_diagnostics.py --smoke        # vérifie le pipeline, jamais une 
 python xp/xp_A_diagnostics.py --exp a1       # A1, 20 secondes sur CPU
 ```
 
-Le run A2 à 6 000 pas, trois heures sur A100 :
+Le run A2 à 6 000 pas :
 
 ```bash
 python xp/xp_A_diagnostics.py --exp a2 --clip 5.0 --steps 6000 \
@@ -174,7 +174,7 @@ python xp/xp_A_diagnostics.py --exp a2 --clip 5.0 --steps 6000 \
     --arm gram_vicreg_sphere --arm gram_vicreg_sphere_gamma --arm gram_vicreg_sphere_gamma_half
 ```
 
-La série E sur COCO-Stuff, 45 minutes par graine. Les commandes de téléchargement des données
+La série E sur COCO-Stuff. Les commandes de téléchargement des données
 sont dans `python xp/xp_E0d_coco.py --help`.
 
 ```bash
