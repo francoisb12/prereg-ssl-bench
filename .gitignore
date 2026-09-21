@@ -1,0 +1,11 @@
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# donnees et artefacts lourds
+data/
+*.zip
+*.ckpt.pt
+*.snap_prev.npz
+

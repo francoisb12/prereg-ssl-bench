@@ -1,0 +1,18 @@
+# Colab Pro A100 a déjà torch + torchvision + numpy + pandas + matplotlib.
+# Ce fichier sert surtout à reproduire l'environnement ailleurs.
+#
+# Aucune dépendance exotique : c'est délibéré. Un banc qui exige une pile
+# particulière ne se refait pas chez quelqu'un d'autre.
+
+torch>=2.1
+torchvision>=0.16
+numpy>=1.24
+pandas>=2.0
+matplotlib>=3.7
+
+# Le socle et les six scripts n'importent rien d'autre. En particulier :
+#   - pas de wandb        (le logging est du CSV flushé ligne à ligne)
+#   - pas de hydra        (argparse suffit, et se lit sans documentation)
+#   - pas de scipy        (l'autocorrélation et la corrélation de rang sont
+#                          faites à la main sur torch/numpy, exprès)
+#   - pas de huggingface  (tous les datasets viennent de torchvision)
