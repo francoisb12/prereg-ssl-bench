@@ -1,0 +1,114 @@
+{
+  "prereg": {
+    "statement": "P0b: on COCO images at 128 px, the correlation length ell of the residual field separates THING cells from STUFF cells (human region labels, same image), better than the naive 'residual is structured' statistic",
+    "decision_rule": "identical to E0 and evaluated by xp_E_router.e0_verdict: GO iff mean AUC >= 0.65 over >= 3 seeds AND margin over naive >= 0.03 AND mean - std >= 0.6; NO-GO iff mean < 0.6",
+    "population": "all cells whose COCO-Stuff purity reaches --purity; mixed and unlabeled cells are excluded before the AUC, and the excluded fraction is reported",
+    "declared_secondary": "auc_*_energetic (lowest-energy decile of cells removed) is exploratory: smooth stuff (sky) has a near-empty residual whose ell is noise",
+    "registered": "2026-09-06, before the first run of this script"
+  },
+  "config": {
+    "dataset": "coco_stuff",
+    "object_source": "stl10_unlabeled",
+    "texture_source": "dtd",
+    "n_object": 20000,
+    "n_texture": 1880,
+    "size": 128,
+    "patch": 8,
+    "data_root": "./data",
+    "width": 64,
+    "depth": 4,
+    "levels": 1,
+    "steps": 15000,
+    "bs": 192,
+    "lr": 0.0015,
+    "wd": 0.05,
+    "warmup": 500,
+    "amp": true,
+    "workers": 4,
+    "mask_variants": 4,
+    "mask_seed": 7,
+    "e0_steps": 10000,
+    "e0_lam_gap": 2500,
+    "e0_diag_n": 1024,
+    "router": {
+      "arm": "range",
+      "lam_eps": 0.01,
+      "hysteresis_m": 3,
+      "lock_steps": 500,
+      "promote_cap": 0.15,
+      "mask_cap": 0.15,
+      "acf_threshold": 0.3,
+      "rf_margin": 1.0,
+      "min_seen": 2
+    },
+    "log_every": 50,
+    "ckpt_every": 1000,
+    "probe_tasks": [
+      "stl10",
+      "dtd"
+    ],
+    "probe_epochs": 40,
+    "eps_r": 0.0001,
+    "ema": 0.7,
+    "ell_chunk": 32,
+    "win_mult": 6,
+    "min_promotions_for_p1": 200,
+    "n_images": 5000,
+    "purity": 0.7,
+    "thing_max_label": 90,
+    "smoke": false
+  },
+  "per_seed": [
+    {
+      "seed": 0,
+      "receptive_field_px": 11.0,
+      "measurement_window_px": 48,
+      "censored_frac": 0.0,
+      "n_cells_total": 262144,
+      "n_cells_labeled": 236385,
+      "frac_thing_cells": 0.3218309114368509,
+      "frac_excluded_cells": 0.09826278686523438,
+      "mean_ell_thing": 3.2271134853363037,
+      "mean_ell_stuff": 3.2111103534698486,
+      "n_diag_images": 1024,
+      "regions_table": "E0b_coco_seed0.regions.npz",
+      "auc_ell_acf": 0.510703205066164,
+      "auc_ell_freq": 0.5166474021013084,
+      "auc_naive_acf_energy": 0.514294599965825,
+      "auc_residual_magnitude": 0.5675247641902664,
+      "auc_ell_acf_stuck": 0.48221814826455406,
+      "auc_naive_stuck": 0.4768949924314016,
+      "auc_ell_acf_energetic": 0.5126787331516647,
+      "auc_naive_energetic": 0.5140310006488072
+    }
+  ],
+  "E0b_verdict": {
+    "prediction": "P0: the correlation length ell of the residual field separates texture from long structure, better than the naive 'residual is structured' test",
+    "verdict": "infirmee",
+    "decision": "NO-GO",
+    "best_estimator": "auc_ell_freq",
+    "auc_mean": 0.5166474021013084,
+    "auc_std": 0.0,
+    "auc_naive_mean": 0.514294599965825,
+    "auc_naive_std": 0.0,
+    "margin_over_naive": 0.0023528021354833895,
+    "n_seeds": 1,
+    "rule": "GO iff auc>=0.65 and margin>=0.03 and auc-std>=0.6; NO-GO iff auc<0.6",
+    "auc_ell_acf": [
+      0.510703205066164,
+      0.0
+    ],
+    "auc_ell_freq": [
+      0.5166474021013084,
+      0.0
+    ],
+    "auc_residual_magnitude": [
+      0.5675247641902664,
+      0.0
+    ],
+    "censored_frac": [
+      0.0,
+      0.0
+    ]
+  }
+}

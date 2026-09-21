@@ -1,0 +1,9 @@
+# Sortie de xp/calib_ruler_E0c.py, 2026-09-16, CPU portable (308 s). Champs 24 x 128 x 128, patch 8, fenetre 64 px, rf 23 px.
+# a) blanc n^2 | b) grain 1.5 px | c) grain x enveloppe 16 px | d) grain x enveloppe 32 px | e) blanc + blob 12 px sur la moitie des images
+a) blanc, n^2                          acf_at_rf mean=-0.0004 std=0.0028 q95=+0.0041 | ell mean=0.63 q95=0.64 frac>rf=0.000 | acf_energy=-0.001
+b) grain 1.5px, (blur n)^2             acf_at_rf mean=-0.0034 std=0.0164 q95=+0.0224 | ell mean=1.95 q95=2.24 frac>rf=0.000 | acf_energy=0.527
+c) grain x enveloppe 16px              acf_at_rf mean=+0.0223 std=0.0245 q95=+0.0637 | ell mean=0.74 q95=0.84 frac>rf=0.000 | acf_energy=0.142
+d) grain x enveloppe 32px              acf_at_rf mean=+0.0288 std=0.0246 q95=+0.0706 | ell mean=0.71 q95=0.82 frac>rf=0.000 | acf_energy=0.107
+e) blanc + blob (moitie des images)    acf_at_rf mean=+0.0006 std=0.0105 q95=+0.0138 | ell mean=0.69 q95=0.73 frac>rf=0.000 | acf_energy=0.025
+[308.2s CPU]
+

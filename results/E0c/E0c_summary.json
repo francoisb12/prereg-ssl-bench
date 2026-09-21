@@ -1,0 +1,142 @@
+{
+  "prereg": {
+    "statement": "P0c: on COCO images at 128 px, with a predictor whose receptive field (23 px) exceeds the hidden block (8 px) and its neighbours, the normalised residual autocorrelation read AT the receptive field (acf_at_rf) separates THING cells from STUFF cells better than the naive short-lag structuredness statistic",
+    "primary_statistic": "auc_acf_at_rf",
+    "secondary_statistics": [
+      "auc_ell_acf",
+      "auc_ell_freq",
+      "auc_ell_acf_smooth"
+    ],
+    "decision_rule": "same thresholds as E0/E0b, applied to the primary statistic: GO iff mean AUC >= 0.65 over >= 3 seeds AND margin over naive >= 0.03 AND mean - std >= 0.6; NO-GO iff mean < 0.6",
+    "precondition": "fraction of labelled cells with RAW ell_acf > receptive field must reach 0.05; otherwise the verdict is 'regime empty' (NO-GO by construction), reported apart from a separation failure",
+    "mask": "1 block in 3 hidden (33%), complementary groups, each block hidden exactly once in the diagnostic sweep; chosen at or under the 40% ceiling requested on the grounds that a local predictor needs visible context inside its receptive field to learn anything beyond a blur",
+    "fuse": "abort at 20% of the budget if the loss gained < 1% since 10%",
+    "registered": "2026-09-16, before the first run of this script, after E-002"
+  },
+  "config": {
+    "dataset": "coco_stuff",
+    "object_source": "stl10_unlabeled",
+    "texture_source": "dtd",
+    "n_object": 20000,
+    "n_texture": 1880,
+    "size": 128,
+    "patch": 8,
+    "data_root": "./data",
+    "width": 64,
+    "depth": 10,
+    "levels": 1,
+    "steps": 15000,
+    "bs": 128,
+    "lr": 0.0015,
+    "wd": 0.05,
+    "warmup": 500,
+    "amp": true,
+    "workers": 4,
+    "mask_variants": 3,
+    "mask_seed": 7,
+    "e0_steps": 10000,
+    "e0_lam_gap": 2500,
+    "e0_diag_n": 1024,
+    "router": {
+      "arm": "range",
+      "lam_eps": 0.01,
+      "hysteresis_m": 3,
+      "lock_steps": 500,
+      "promote_cap": 0.15,
+      "mask_cap": 0.15,
+      "acf_threshold": 0.3,
+      "rf_margin": 1.0,
+      "min_seen": 2
+    },
+    "log_every": 50,
+    "ckpt_every": 1000,
+    "probe_tasks": [
+      "stl10",
+      "dtd"
+    ],
+    "probe_epochs": 40,
+    "eps_r": 0.0001,
+    "ema": 0.7,
+    "ell_chunk": 32,
+    "win_mult": 8,
+    "min_promotions_for_p1": 200,
+    "n_images": 5000,
+    "purity": 0.7,
+    "thing_max_label": 90,
+    "mask_ratio": 0.3333333333333333,
+    "smoke": false
+  },
+  "per_seed": [
+    {
+      "seed": 0,
+      "receptive_field_px": 23.0,
+      "measurement_window_px": 64,
+      "mask_ratio": 0.3333333333333333,
+      "censored_frac": 0.0,
+      "n_cells_total": 262144,
+      "n_cells_labeled": 236385,
+      "frac_thing_cells": 0.3218309114368509,
+      "frac_excluded_cells": 0.09826278686523438,
+      "frac_ell_above_rf": 0.0,
+      "frac_ell_above_rf_thing": 0.0,
+      "frac_ell_above_rf_stuff": 0.0,
+      "mean_ell_thing": 1.6116650104522705,
+      "mean_ell_stuff": 1.5261508226394653,
+      "mean_acf_at_rf_thing": -0.0015162841882556677,
+      "mean_acf_at_rf_stuff": 0.0006302224937826395,
+      "loss_marks": {
+        "l05": 0.06627765890210867,
+        "l10": 0.05887027774006128,
+        "l20": 0.055204631872475145
+      },
+      "n_diag_images": 1024,
+      "regions_table": "E0c_coco_seed0.regions.npz",
+      "auc_acf_at_rf": 0.46782856788980653,
+      "auc_ell_acf": 0.5617928194572938,
+      "auc_ell_freq": 0.5704417041647837,
+      "auc_ell_acf_smooth": 0.507495330298233,
+      "auc_naive_acf_energy": 0.5619807538612948,
+      "auc_residual_magnitude": 0.6153251432400237,
+      "auc_acf_at_rf_stuck": 0.47289166974889796,
+      "auc_naive_stuck": 0.5783629702735138
+    }
+  ],
+  "E0c_verdict": {
+    "prediction": "P0c: on COCO images at 128 px, with a predictor whose receptive field (23 px) exceeds the hidden block (8 px) and its neighbours, the normalised residual autocorrelation read AT the receptive field (acf_at_rf) separates THING cells from STUFF cells better than the naive short-lag structuredness statistic",
+    "verdict": "non concluante",
+    "decision": "NO-GO",
+    "reason": "regime_empty",
+    "primary_statistic": "auc_acf_at_rf",
+    "auc_mean": 0.46782856788980653,
+    "auc_std": 0.0,
+    "auc_naive_mean": 0.5619807538612948,
+    "auc_naive_std": 0.0,
+    "margin_over_naive": -0.09415218597148822,
+    "regime_frac_ell_above_rf": 0.0,
+    "regime_min_frac": 0.05,
+    "regime_empty": true,
+    "n_seeds": 1,
+    "secondary": {
+      "auc_ell_acf": [
+        0.5617928194572938,
+        0.0
+      ],
+      "auc_ell_freq": [
+        0.5704417041647837,
+        0.0
+      ],
+      "auc_ell_acf_smooth": [
+        0.507495330298233,
+        0.0
+      ],
+      "auc_residual_magnitude": [
+        0.6153251432400237,
+        0.0
+      ],
+      "censored_frac": [
+        0.0,
+        0.0
+      ]
+    }
+  }
+}

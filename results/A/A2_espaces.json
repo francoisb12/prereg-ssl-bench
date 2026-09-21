@@ -1,0 +1,307 @@
+{
+  "what_this_is": "exploratoire. Aucune these testee, aucun seuil. Voir JOURNAL.md entree A-002.",
+  "results_dir": "/content/drive/MyDrive/francois/ubergang_xp/results/A",
+  "trajectory": {
+    "gram": {
+      "per_seed": [
+        {
+          "file": "A2_gram_seed0.csv",
+          "n_points": 31,
+          "step_first": 0,
+          "eff_rank_h_at_init": 34.40168380737305,
+          "step_last": 1500,
+          "eff_rank_h_final": 137.82994079589844,
+          "total_change": 103.42825698852539,
+          "last_quarter_change": 1.60589599609375,
+          "last_quarter_over_total": 0.015526665950407657
+        },
+        {
+          "file": "A2_gram_seed1.csv",
+          "n_points": 31,
+          "step_first": 0,
+          "eff_rank_h_at_init": 36.73506164550781,
+          "step_last": 1500,
+          "eff_rank_h_final": 151.1455535888672,
+          "total_change": 114.41049194335938,
+          "last_quarter_change": 1.1445465087890625,
+          "last_quarter_over_total": 0.010003859692830333
+        },
+        {
+          "file": "A2_gram_seed2.csv",
+          "n_points": 31,
+          "step_first": 0,
+          "eff_rank_h_at_init": 30.547983169555664,
+          "step_last": 1500,
+          "eff_rank_h_final": 151.62002563476562,
+          "total_change": 121.07204246520996,
+          "last_quarter_change": -1.61602783203125,
+          "last_quarter_over_total": -0.01334765482704742
+        }
+      ],
+      "eff_rank_h_at_init_mean_sd": [
+        33.89490954081217,
+        3.1245159840899874
+      ],
+      "eff_rank_h_final_mean_sd": [
+        146.86517333984375,
+        7.8283364307470285
+      ],
+      "last_quarter_change_mean_sd": [
+        0.3781382242838542,
+        1.7423359413381152
+      ]
+    },
+    "gram_vicreg": {
+      "per_seed": [
+        {
+          "file": "A2_gram_vicreg_seed0.csv",
+          "n_points": 31,
+          "step_first": 0,
+          "eff_rank_h_at_init": 34.40168380737305,
+          "step_last": 1500,
+          "eff_rank_h_final": 146.4538116455078,
+          "total_change": 112.05212783813477,
+          "last_quarter_change": 0.2451934814453125,
+          "last_quarter_over_total": 0.0021882090610497594
+        },
+        {
+          "file": "A2_gram_vicreg_seed1.csv",
+          "n_points": 31,
+          "step_first": 0,
+          "eff_rank_h_at_init": 36.73506164550781,
+          "step_last": 1500,
+          "eff_rank_h_final": 152.4053955078125,
+          "total_change": 115.67033386230469,
+          "last_quarter_change": 1.3802947998046875,
+          "last_quarter_over_total": 0.01193300610204693
+        },
+        {
+          "file": "A2_gram_vicreg_seed2.csv",
+          "n_points": 31,
+          "step_first": 0,
+          "eff_rank_h_at_init": 30.547983169555664,
+          "step_last": 1500,
+          "eff_rank_h_final": 142.36083984375,
+          "total_change": 111.81285667419434,
+          "last_quarter_change": 0.8886566162109375,
+          "last_quarter_over_total": 0.007947714088017158
+        }
+      ],
+      "eff_rank_h_at_init_mean_sd": [
+        33.89490954081217,
+        3.1245159840899874
+      ],
+      "eff_rank_h_final_mean_sd": [
+        147.07334899902344,
+        5.050855820691516
+      ],
+      "last_quarter_change_mean_sd": [
+        0.8380482991536459,
+        0.5692404167413153
+      ]
+    },
+    "gram_vicreg_sphere": {
+      "per_seed": [
+        {
+          "file": "A2_gram_vicreg_sphere_seed0.csv",
+          "n_points": 31,
+          "step_first": 0,
+          "eff_rank_h_at_init": 34.40168380737305,
+          "step_last": 1500,
+          "eff_rank_h_final": 203.0214385986328,
+          "total_change": 168.61975479125977,
+          "last_quarter_change": 0.7875518798828125,
+          "last_quarter_over_total": 0.004670578965422825
+        },
+        {
+          "file": "A2_gram_vicreg_sphere_seed1.csv",
+          "n_points": 31,
+          "step_first": 0,
+          "eff_rank_h_at_init": 36.73506164550781,
+          "step_last": 1500,
+          "eff_rank_h_final": 202.60964965820312,
+          "total_change": 165.8745880126953,
+          "last_quarter_change": 0.483551025390625,
+          "last_quarter_over_total": 0.0029151603701563747
+        },
+        {
+          "file": "A2_gram_vicreg_sphere_seed2.csv",
+          "n_points": 31,
+          "step_first": 0,
+          "eff_rank_h_at_init": 30.547983169555664,
+          "step_last": 1500,
+          "eff_rank_h_final": 200.64239501953125,
+          "total_change": 170.0944118499756,
+          "last_quarter_change": 0.401153564453125,
+          "last_quarter_over_total": 0.0023584170702030186
+        }
+      ],
+      "eff_rank_h_at_init_mean_sd": [
+        33.89490954081217,
+        3.1245159840899874
+      ],
+      "eff_rank_h_final_mean_sd": [
+        202.0911610921224,
+        1.2714499135567359
+      ],
+      "last_quarter_change_mean_sd": [
+        0.5574188232421875,
+        0.20351474937041922
+      ]
+    }
+  },
+  "checkpoints": {
+    "gram": {
+      "per_seed": [
+        {
+          "file": "A2_gram_seed0.ckpt.pt",
+          "step": 1500,
+          "n_images": 10000,
+          "eff_rank_h_clean_uncentred": 231.9946746826172,
+          "eff_rank_h_clean_centred": 346.38714599609375,
+          "fisher_ratio_clean": 0.04366775014233748,
+          "mean_h_norm": 16.29241180419922
+        },
+        {
+          "file": "A2_gram_seed1.ckpt.pt",
+          "step": 1500,
+          "n_images": 10000,
+          "eff_rank_h_clean_uncentred": 242.86773681640625,
+          "eff_rank_h_clean_centred": 365.73199462890625,
+          "fisher_ratio_clean": 0.047332686875739646,
+          "mean_h_norm": 16.788326263427734
+        },
+        {
+          "file": "A2_gram_seed2.ckpt.pt",
+          "step": 1500,
+          "n_images": 10000,
+          "eff_rank_h_clean_uncentred": 253.23573303222656,
+          "eff_rank_h_clean_centred": 389.4342346191406,
+          "fisher_ratio_clean": 0.04190683827110487,
+          "mean_h_norm": 17.10239601135254
+        }
+      ],
+      "eff_rank_h_clean_uncentred": [
+        242.69938151041666,
+        10.62152990791198
+      ],
+      "eff_rank_h_clean_centred": [
+        367.18445841471356,
+        21.560268969030144
+      ],
+      "fisher_ratio_clean": [
+        0.044302425096393996,
+        0.0027680439832279166
+      ]
+    },
+    "gram_vicreg": {
+      "per_seed": [
+        {
+          "file": "A2_gram_vicreg_seed0.ckpt.pt",
+          "step": 1500,
+          "n_images": 10000,
+          "eff_rank_h_clean_uncentred": 157.07015991210938,
+          "eff_rank_h_clean_centred": 188.71450805664062,
+          "fisher_ratio_clean": 0.07464288173969559,
+          "mean_h_norm": 27.328189849853516
+        },
+        {
+          "file": "A2_gram_vicreg_seed1.ckpt.pt",
+          "step": 1500,
+          "n_images": 10000,
+          "eff_rank_h_clean_uncentred": 160.19024658203125,
+          "eff_rank_h_clean_centred": 192.6199951171875,
+          "fisher_ratio_clean": 0.0658602545909314,
+          "mean_h_norm": 28.371055603027344
+        },
+        {
+          "file": "A2_gram_vicreg_seed2.ckpt.pt",
+          "step": 1500,
+          "n_images": 10000,
+          "eff_rank_h_clean_uncentred": 152.48297119140625,
+          "eff_rank_h_clean_centred": 184.60948181152344,
+          "fisher_ratio_clean": 0.06479895511765152,
+          "mean_h_norm": 27.80467414855957
+        }
+      ],
+      "eff_rank_h_clean_uncentred": [
+        156.58112589518228,
+        3.8768401036175475
+      ],
+      "eff_rank_h_clean_centred": [
+        188.6479949951172,
+        4.005670835898797
+      ],
+      "fisher_ratio_clean": [
+        0.0684340304827595,
+        0.005403143954316198
+      ]
+    },
+    "gram_vicreg_sphere": {
+      "per_seed": [
+        {
+          "file": "A2_gram_vicreg_sphere_seed0.ckpt.pt",
+          "step": 1500,
+          "n_images": 10000,
+          "eff_rank_h_clean_uncentred": 266.75177001953125,
+          "eff_rank_h_clean_centred": 461.3749694824219,
+          "fisher_ratio_clean": 0.02482704126556201,
+          "mean_h_norm": 18.670251846313477
+        },
+        {
+          "file": "A2_gram_vicreg_sphere_seed1.ckpt.pt",
+          "step": 1500,
+          "n_images": 10000,
+          "eff_rank_h_clean_uncentred": 267.2451171875,
+          "eff_rank_h_clean_centred": 462.93255615234375,
+          "fisher_ratio_clean": 0.015591825753647395,
+          "mean_h_norm": 18.684694290161133
+        },
+        {
+          "file": "A2_gram_vicreg_sphere_seed2.ckpt.pt",
+          "step": 1500,
+          "n_images": 10000,
+          "eff_rank_h_clean_uncentred": 261.5288391113281,
+          "eff_rank_h_clean_centred": 459.69677734375,
+          "fisher_ratio_clean": 0.021929466292198593,
+          "mean_h_norm": 18.80509376525879
+        }
+      ],
+      "eff_rank_h_clean_uncentred": [
+        265.1752421061198,
+        3.167497270299522
+      ],
+      "eff_rank_h_clean_centred": [
+        461.3347676595052,
+        1.6182639662491605
+      ],
+      "fisher_ratio_clean": [
+        0.020782777770469333,
+        0.004723184552002633
+      ]
+    }
+  },
+  "contrasts_gram_vs_gram_vicreg": {
+    "eff_rank_h_clean_uncentred": {
+      "gram": 242.69938151041666,
+      "gram_vicreg": 156.58112589518228,
+      "difference": -86.11825561523438,
+      "se_of_difference": 6.528062162022406,
+      "sigma": -13.19200912580691
+    },
+    "eff_rank_h_clean_centred": {
+      "gram": 367.18445841471356,
+      "gram_vicreg": 188.6479949951172,
+      "difference": -178.53646341959637,
+      "se_of_difference": 12.6608398465833,
+      "sigma": -14.101470801542195
+    },
+    "fisher_ratio_clean": {
+      "gram": 0.044302425096393996,
+      "gram_vicreg": 0.0684340304827595,
+      "difference": 0.02413160538636551,
+      "se_of_difference": 0.0035050455101252706,
+      "sigma": 6.884819417224356
+    }
+  }
+}

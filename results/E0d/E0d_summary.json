@@ -1,0 +1,177 @@
+{
+  "prereg": {
+    "statement": "P0d: on COCO images at 128 px, with hidden blocks (32 px) LARGER than the predictor's receptive field (23 px), so that the model must extrapolate in the core of each hole, the normalised residual autocorrelation read at the receptive field (acf_at_rf) is higher on THING cells than on STUFF cells, and separates them better than (i) the naive short-lag structuredness statistic and (ii) the same acf_at_rf read on a null predictor (the image's own mean colour)",
+    "primary_statistic": "auc_acf_at_rf",
+    "controls": [
+      "auc_naive_acf_energy",
+      "auc_null_acf_at_rf"
+    ],
+    "secondary_statistics": [
+      "auc_ell_acf",
+      "auc_ell_freq",
+      "auc_residual_magnitude"
+    ],
+    "exploratory": [
+      "auc_acf_at_rf_core",
+      "auc_acf_at_rf_ring",
+      "auc_acf_at_rf_stuck"
+    ],
+    "decision_rule": "GO iff mean AUC >= 0.65 over >= 3 seeds AND margin over EACH control >= 0.03 AND mean - std >= 0.6; NO-GO iff mean < 0.6; 'signe inverse' iff mean <= 0.4 with a populated regime (reported apart from a plain separation failure)",
+    "precondition": "fraction of labelled cells with acf_at_rf > 0.05 must reach 0.1; otherwise 'regime empty' (NO-GO by construction), reported apart. Thresholds derived from results/E0c/calib_ruler_synthetic.txt (grain only: q95 = 0.022; grain + 16 px envelope: ~13% above 0.05) and from E0c itself (2% above 0.05, empty)",
+    "residual_production": "super-blocks of 32 px, 1 in 4 hidden (25%), complementary groups; hide > rf is enforced by the script; loss on hidden cells only",
+    "seeds": "seed 0 first (pilot); seeds 1 and 2 only if seed 0's regime is populated",
+    "fuse": "abort at 20% of the budget if the loss gained < 1% since 10%",
+    "registered": "2026-09-16, before the first run of this script, after E-003"
+  },
+  "config": {
+    "dataset": "coco_stuff",
+    "object_source": "stl10_unlabeled",
+    "texture_source": "dtd",
+    "n_object": 20000,
+    "n_texture": 1880,
+    "size": 128,
+    "patch": 8,
+    "data_root": "./data",
+    "width": 64,
+    "depth": 10,
+    "levels": 1,
+    "steps": 15000,
+    "bs": 128,
+    "lr": 0.0015,
+    "wd": 0.05,
+    "warmup": 500,
+    "amp": true,
+    "workers": 4,
+    "mask_variants": 4,
+    "mask_seed": 7,
+    "e0_steps": 10000,
+    "e0_lam_gap": 2500,
+    "e0_diag_n": 1024,
+    "router": {
+      "arm": "range",
+      "lam_eps": 0.01,
+      "hysteresis_m": 3,
+      "lock_steps": 500,
+      "promote_cap": 0.15,
+      "mask_cap": 0.15,
+      "acf_threshold": 0.3,
+      "rf_margin": 1.0,
+      "min_seen": 2
+    },
+    "log_every": 50,
+    "ckpt_every": 1000,
+    "probe_tasks": [
+      "stl10",
+      "dtd"
+    ],
+    "probe_epochs": 40,
+    "eps_r": 0.0001,
+    "ema": 0.7,
+    "ell_chunk": 32,
+    "win_mult": 8,
+    "min_promotions_for_p1": 200,
+    "n_images": 5000,
+    "purity": 0.7,
+    "thing_max_label": 90,
+    "hide_px": 32,
+    "mask_ratio": 0.25,
+    "smoke": false
+  },
+  "per_seed": [
+    {
+      "seed": 0,
+      "receptive_field_px": 23.0,
+      "hide_px": 32,
+      "blind_core_px": 10.0,
+      "measurement_window_px": 64,
+      "mask_ratio": 0.25,
+      "censored_frac": 0.0,
+      "n_cells_total": 262144,
+      "n_cells_labeled": 236385,
+      "frac_thing_cells": 0.3218309114368509,
+      "frac_excluded_cells": 0.09826278686523438,
+      "frac_acf_above_floor": 0.08952767730608964,
+      "frac_acf_above_floor_thing": 0.06986434618013565,
+      "frac_acf_above_floor_stuff": 0.09885907840483067,
+      "frac_null_above_floor": 0.239664107282611,
+      "frac_ell_above_rf": 0.0,
+      "frac_core_cells": 0.48488271252406034,
+      "mean_ell_thing": 4.8168463706970215,
+      "mean_ell_stuff": 5.174703121185303,
+      "mean_acf_at_rf_thing": -0.03245165944099426,
+      "mean_acf_at_rf_stuff": -0.030212750658392906,
+      "mean_null_acf_at_rf_thing": 0.00644352613016963,
+      "mean_null_acf_at_rf_stuff": 0.020292814821004868,
+      "mean_r_thing": 0.17907044997423963,
+      "mean_r_stuff": 0.1656782069699715,
+      "loss_marks": {
+        "l05": 0.23386920258402824,
+        "l10": 0.18752621248364448,
+        "l20": 0.18214453876018524
+      },
+      "n_diag_images": 1024,
+      "regions_table": "E0d_coco_seed0.regions.npz",
+      "auc_acf_at_rf": 0.4841681508819989,
+      "auc_naive_acf_energy": 0.5037632421562995,
+      "auc_null_acf_at_rf": 0.44733478886312344,
+      "auc_ell_acf": 0.47621364165753277,
+      "auc_ell_freq": 0.5219799545905691,
+      "auc_residual_magnitude": 0.5510868336905208,
+      "auc_acf_at_rf_core": 0.46295706682218457,
+      "auc_acf_at_rf_ring": 0.5182106574113523,
+      "auc_acf_at_rf_stuck": 0.4804306535858289,
+      "auc_naive_stuck": 0.49758945569603485
+    }
+  ],
+  "E0d_verdict": {
+    "prediction": "P0d: on COCO images at 128 px, with hidden blocks (32 px) LARGER than the predictor's receptive field (23 px), so that the model must extrapolate in the core of each hole, the normalised residual autocorrelation read at the receptive field (acf_at_rf) is higher on THING cells than on STUFF cells, and separates them better than (i) the naive short-lag structuredness statistic and (ii) the same acf_at_rf read on a null predictor (the image's own mean colour)",
+    "verdict": "non concluante",
+    "decision": "NO-GO",
+    "reason": "regime_empty",
+    "primary_statistic": "auc_acf_at_rf",
+    "auc_mean": 0.4841681508819989,
+    "auc_std": 0.0,
+    "auc_naive_mean": 0.5037632421562995,
+    "auc_naive_std": 0.0,
+    "auc_null_mean": 0.44733478886312344,
+    "auc_null_std": 0.0,
+    "margin_over_naive": -0.019595091274300647,
+    "margin_over_null": 0.03683336201887544,
+    "margin_over_controls": -0.019595091274300647,
+    "regime_frac_acf_above_floor": 0.08952767730608964,
+    "regime_min_frac": 0.1,
+    "acf_floor": 0.05,
+    "regime_empty": true,
+    "n_seeds": 1,
+    "secondary": {
+      "auc_ell_acf": [
+        0.47621364165753277,
+        0.0
+      ],
+      "auc_ell_freq": [
+        0.5219799545905691,
+        0.0
+      ],
+      "auc_residual_magnitude": [
+        0.5510868336905208,
+        0.0
+      ],
+      "auc_acf_at_rf_core": [
+        0.46295706682218457,
+        0.0
+      ],
+      "auc_acf_at_rf_ring": [
+        0.5182106574113523,
+        0.0
+      ],
+      "frac_ell_above_rf": [
+        0.0,
+        0.0
+      ],
+      "censored_frac": [
+        0.0,
+        0.0
+      ]
+    }
+  }
+}
