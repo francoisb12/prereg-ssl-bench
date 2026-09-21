@@ -126,6 +126,25 @@ artefacts de A-003 et de `results/A` ont été perdus faute de cela. Chaque rés
 kNN standardisé et le rang des embeddings sur le test propre, centré et non centré, à N = 512
 et N = 10 000.
 
+**Déviation déclarée AVANT le run (2026-09-21).** Le run ne tournera pas sur A100 (Colab) mais
+sur Kaggle, GPU T4 x2. Seuils, bras et prédictions sont inchangés. Ce qui change :
+- `--no-amp` : le T4 n'a pas de bfloat16 natif, l'entraînement se fait en précision 32 bits.
+  A-004 était en bf16. Les chiffres absolus de ce run ne sont donc pas directement comparables
+  à ceux de A-004. Q3 et Q4 ne comparent que des bras de ce run, tous dans la même condition.
+  `amp` est écrit dans la config de chaque résumé : un run fait dans une autre condition se
+  verrait.
+- Une invocation par graine (`--seed k --n-seeds 1`) au lieu d'une invocation à trois graines,
+  avec deux files de quatre bras en parallèle, une par GPU, et `--workers 2`. Vérifié dans le
+  code : `--seed` ne sert qu'à dériver la graine de chaque run (le sous-échantillonnage longue
+  traîne, qui le lit aussi, est désactivé), donc la graine k lancée seule est le même run que la
+  graine k d'une invocation à trois graines. Le nombre de workers change le flux
+  d'augmentations, pas le budget, et il est le même pour les 24 runs.
+- Commande par file : `python xp/xp_A_diagnostics.py --exp a2 --clip 5.0 --steps 6000 --no-amp
+  --workers 2 --seed k --n-seeds 1` suivi des quatre `--arm` de la file.
+- Les verdicts sont calculés après coup par `verdicts_a2`, la même fonction, sur les 24 résumés
+  réunis, sans réentraînement.
+- Wall-clock prévu : environ 1 h par run, 4 à 5 h par graine.
+
 **Résultat brut :** [à remplir après le run]
 
 **Verdict :** [à remplir après le run]
